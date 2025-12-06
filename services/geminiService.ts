@@ -57,3 +57,41 @@ export const extractTextFromImage = async (file: File): Promise<string> => {
     return "Failed to extract text. Please try again.";
   }
 };
+
+/**
+ * Generates or edits an image using Gemini 2.5 Flash Image (Nano Banana)
+ */
+export const generateAIImage = async (prompt: string, referenceFile?: File): Promise<string> => {
+  try {
+    const ai = getAiClient();
+    const parts: any[] = [];
+    
+    // For editing/variations, pass image first
+    if (referenceFile) {
+        const imagePart = await fileToGenerativePart(referenceFile);
+        parts.push(imagePart);
+    }
+    
+    parts.push({ text: prompt });
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: { parts },
+    });
+
+    const candidates = response.candidates;
+    if (!candidates || candidates.length === 0) throw new Error("No response from AI");
+
+    // Iterate to find image part
+    for (const part of candidates[0].content.parts) {
+        if (part.inlineData && part.inlineData.data) {
+            return part.inlineData.data;
+        }
+    }
+    
+    throw new Error("No image data found in response. The model might have refused the request.");
+  } catch (error: any) {
+      console.error("Gemini Image Generation Error:", error);
+      throw error;
+  }
+};
