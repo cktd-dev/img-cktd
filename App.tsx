@@ -167,8 +167,8 @@ function App() {
       <main className="flex-grow flex flex-col items-center pt-8 pb-20 px-4 sm:px-6 relative z-10">
         <div className="w-full max-w-xl">
           
-          {/* View: Idle / Selecting / Error */}
-          {(status === UploadStatus.IDLE || status === UploadStatus.SELECTING || status === UploadStatus.ERROR) && !result && (
+          {/* View: Idle / Selecting / Error / Uploading */}
+          {(status === UploadStatus.IDLE || status === UploadStatus.SELECTING || status === UploadStatus.ERROR || status === UploadStatus.UPLOADING) && !result && (
             <div className="space-y-8 animate-fade-in">
               
               {/* Branding */}
