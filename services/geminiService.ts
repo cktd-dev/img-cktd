@@ -1,19 +1,27 @@
 import { GoogleGenAI } from "@google/genai";
 
+// Declare the global constant injected by Vite
+declare const __GEMINI_API_KEY__: string | undefined;
+
 let aiInstance: GoogleGenAI | null = null;
 
 const getAiClient = () => {
   if (!aiInstance) {
-    // Priority: 
-    // 1. VITE_API_KEY (Standard Vite way, highly recommended)
-    // 2. API_KEY (Fallback if injected via define in vite.config.ts)
-    const apiKey = import.meta.env.VITE_API_KEY || process.env.API_KEY;
+    // 1. Try standard Vite env object (Best for Vercel VITE_ prefix)
+    let key = import.meta.env.VITE_API_KEY;
     
-    if (!apiKey) {
-      console.error("API Key not found. Checked import.meta.env.VITE_API_KEY and process.env.API_KEY");
-      throw new Error("Gemini API Key is missing. Please add VITE_API_KEY to your Vercel Environment Variables.");
+    // 2. Fallback to the global constant injected by vite.config.ts
+    // This catches cases where VITE_ prefix wasn't used but API_KEY was set in system
+    if (!key && typeof __GEMINI_API_KEY__ !== 'undefined') {
+      key = __GEMINI_API_KEY__;
     }
-    aiInstance = new GoogleGenAI({ apiKey });
+
+    if (!key) {
+      console.error("Gemini API Key could not be found in environment variables.");
+      throw new Error("Configuration Error: API Key missing. Please set VITE_API_KEY in Vercel Settings.");
+    }
+    
+    aiInstance = new GoogleGenAI({ apiKey: key });
   }
   return aiInstance;
 };
@@ -58,9 +66,9 @@ export const extractTextFromImage = async (file: File): Promise<string> => {
     return response.text || "No text detected.";
   } catch (error: any) {
     console.error("Gemini Text Extraction Error:", error);
-    // Return a user-friendly error string instead of crashing
-    if (error.message.includes("API Key is missing")) {
-        return "Configuration Error: API Key missing. Please set VITE_API_KEY in Vercel.";
+    
+    if (error.message.includes("API Key missing")) {
+        return "Setup Error: VITE_API_KEY is missing in Vercel Environment Variables. Please add it and redeploy.";
     }
     return "Failed to extract text. Please try again.";
   }
