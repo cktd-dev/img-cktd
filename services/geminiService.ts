@@ -1,27 +1,15 @@
 import { GoogleGenAI } from "@google/genai";
-
-// Declare the global constant injected by Vite
-declare const __GEMINI_API_KEY__: string | undefined;
+import { DEFAULT_GEMINI_API_KEY } from "../constants";
 
 let aiInstance: GoogleGenAI | null = null;
 
 const getAiClient = () => {
   if (!aiInstance) {
-    // 1. Try standard Vite env object (Best for Vercel VITE_ prefix)
-    let key = import.meta.env.VITE_API_KEY;
-    
-    // 2. Fallback to the global constant injected by vite.config.ts
-    // This catches cases where VITE_ prefix wasn't used but API_KEY was set in system
-    if (!key && typeof __GEMINI_API_KEY__ !== 'undefined') {
-      key = __GEMINI_API_KEY__;
+    if (!DEFAULT_GEMINI_API_KEY) {
+      console.error("Gemini API Key is missing in constants.ts");
+      throw new Error("Configuration Error: API Key is missing.");
     }
-
-    if (!key) {
-      console.error("Gemini API Key could not be found in environment variables.");
-      throw new Error("Configuration Error: API Key missing. Please set VITE_API_KEY in Vercel Settings.");
-    }
-    
-    aiInstance = new GoogleGenAI({ apiKey: key });
+    aiInstance = new GoogleGenAI({ apiKey: DEFAULT_GEMINI_API_KEY });
   }
   return aiInstance;
 };
@@ -66,10 +54,6 @@ export const extractTextFromImage = async (file: File): Promise<string> => {
     return response.text || "No text detected.";
   } catch (error: any) {
     console.error("Gemini Text Extraction Error:", error);
-    
-    if (error.message.includes("API Key missing")) {
-        return "Setup Error: VITE_API_KEY is missing in Vercel Environment Variables. Please add it and redeploy.";
-    }
     return "Failed to extract text. Please try again.";
   }
 };

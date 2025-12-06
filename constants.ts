@@ -1,4 +1,5 @@
 export const DEFAULT_IMGBB_API_KEY = "327237669dd50c51fc1fb91d045a25c5";
+export const DEFAULT_GEMINI_API_KEY = "AIzaSyCYV3WaxsSjsTWObQGxG8qSWhkxbQWazkg";
 export const API_URL = "https://api.imgbb.com/1/upload";
 
 export const EXPIRATION_OPTIONS = [
