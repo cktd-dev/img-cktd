@@ -4,9 +4,14 @@ let aiInstance: GoogleGenAI | null = null;
 
 const getAiClient = () => {
   if (!aiInstance) {
-    const apiKey = process.env.API_KEY;
+    // Priority: 
+    // 1. VITE_API_KEY (Standard Vite way, highly recommended)
+    // 2. API_KEY (Fallback if injected via define in vite.config.ts)
+    const apiKey = import.meta.env.VITE_API_KEY || process.env.API_KEY;
+    
     if (!apiKey) {
-      throw new Error("Gemini API Key is missing. Please check your environment variables.");
+      console.error("API Key not found. Checked import.meta.env.VITE_API_KEY and process.env.API_KEY");
+      throw new Error("Gemini API Key is missing. Please add VITE_API_KEY to your Vercel Environment Variables.");
     }
     aiInstance = new GoogleGenAI({ apiKey });
   }
@@ -55,8 +60,8 @@ export const extractTextFromImage = async (file: File): Promise<string> => {
     console.error("Gemini Text Extraction Error:", error);
     // Return a user-friendly error string instead of crashing
     if (error.message.includes("API Key is missing")) {
-        return "Error: API Key is missing in configuration.";
+        return "Configuration Error: API Key missing. Please set VITE_API_KEY in Vercel.";
     }
-    throw new Error("Failed to extract text from the image.");
+    return "Failed to extract text. Please try again.";
   }
 };
