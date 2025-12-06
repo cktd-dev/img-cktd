@@ -1,0 +1,5 @@
+{
+  "name": "ImgShare Pro",
+  "description": "A modern, high-performance image hosting application powered by ImgBB. Upload, manage, and share your images instantly with direct links, Markdown, and HTML support.",
+  "requestFramePermissions": []
+}
