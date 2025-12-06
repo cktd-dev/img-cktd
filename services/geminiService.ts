@@ -1,8 +1,17 @@
 import { GoogleGenAI } from "@google/genai";
 
-// Initialize Gemini AI
-// process.env.API_KEY is guaranteed to be available per system instructions
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+let aiInstance: GoogleGenAI | null = null;
+
+const getAiClient = () => {
+  if (!aiInstance) {
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
+      throw new Error("Gemini API Key is missing. Please check your environment variables.");
+    }
+    aiInstance = new GoogleGenAI({ apiKey });
+  }
+  return aiInstance;
+};
 
 /**
  * Converts a File object to a base64 string suitable for Gemini API
@@ -26,6 +35,7 @@ const fileToGenerativePart = async (file: File) => {
  */
 export const extractTextFromImage = async (file: File): Promise<string> => {
   try {
+    const ai = getAiClient();
     const imagePart = await fileToGenerativePart(file);
     
     const response = await ai.models.generateContent({
@@ -41,8 +51,12 @@ export const extractTextFromImage = async (file: File): Promise<string> => {
     });
 
     return response.text || "No text detected.";
-  } catch (error) {
+  } catch (error: any) {
     console.error("Gemini Text Extraction Error:", error);
+    // Return a user-friendly error string instead of crashing
+    if (error.message.includes("API Key is missing")) {
+        return "Error: API Key is missing in configuration.";
+    }
     throw new Error("Failed to extract text from the image.");
   }
 };
